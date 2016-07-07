@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd
+http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2-2.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.ylitormatech.userserver">
+        <context:exclude-filter expression="org.springframework.stereotype.Controller" type="annotation"/>
+    </context:component-scan>
+
+
+    <security:authentication-manager alias="authenticationManager">
+        <security:authentication-provider ref="myAuthenticationProvider"/>
+    </security:authentication-manager>
+
+
+    <bean id="userService" class="com.ylitormatech.userserver.domain.service.impl.UserServiceImpl" />
+
+    <bean id="myAuthenticationProvider" class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">
+        <property name="userDetailsService" ref="userService" />
+    </bean>
+
+
+
+
+    <security:http pattern="/oauth/token" create-session="stateless"
+    authentication-manager-ref="clientAuthenticationManager">
+        <security:csrf disabled="true" />
+
+        <security:intercept-url pattern="/**" method="GET" access="ROLE_DENY" />
+        <security:intercept-url pattern="/**" method="PUT" access="ROLE_DENY" />
+        <security:intercept-url pattern="/**" method="DELETE" access="ROLE_DENY" />
+        <security:intercept-url pattern="/**" access="isFullyAuthenticated()" />
+        <security:anonymous enabled="false" />
+        <security:http-basic entry-point-ref="clientAuthenticationEntryPoint" />
+        <security:custom-filter ref="clientCredentialsTokenEndpointFilter"
+        			after="BASIC_AUTH_FILTER" />
+        <security:access-denied-handler ref="oauthAccessDeniedHandler" />
+    </security:http>
+
+
+
+
+    <bean id="oauthAuthenticationEntryPoint"
+    		class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
+    		<property name="realmName" value="Testi" />
+    	</bean>
+
+    <bean id="clientAuthenticationEntryPoint"
+    		class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
+    		<property name="realmName" value="Testi/client" />
+    		<property name="typeName" value="Basic" />
+    	</bean>
+
+    <bean id="oauthAccessDeniedHandler"
+    		class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
+
+    <bean id="clientCredentialsTokenEndpointFilter"
+    		class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
+    		<property name="authenticationManager" ref="clientAuthenticationManager" />
+    	</bean>
+
+    <security:authentication-manager id="clientAuthenticationManager">
+    		<security:authentication-provider user-service-ref="clientDetailsUserService" />
+    </security:authentication-manager>
+
+    <bean id="clientDetailsUserService"
+    		class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+    		<constructor-arg ref="clientDetails" />
+    </bean>
+
+    <oauth:authorization-server client-details-service-ref="clientDetails"
+                                token-services-ref="tokenServices"
+                                user-approval-handler-ref="userApprovalHandler">
+        <oauth:authorization-code/>
+        <oauth:implicit/>
+        <oauth:refresh-token/>
+        <oauth:client-credentials/>
+        <oauth:password authentication-manager-ref="authenticationManager"/>
+
+    </oauth:authorization-server>
+
+    <oauth:client-details-service id="clientDetails">
+        <oauth:client client-id="testi"
+                      secret="testi"
+                      authorized-grant-types="password"
+                      authorities="ROLE_CLIENT"
+                      scope="trust"/>
+
+
+    </oauth:client-details-service>
+
+    <bean id="tokenStore"
+    		class="org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore" />
+
+    	<bean id="tokenServices"
+    		class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
+    		<property name="tokenStore" ref="tokenStore" />
+    		<property name="supportRefreshToken" value="true" />
+    		<property name="clientDetailsService" ref="clientDetails" />
+    	</bean>
+
+    <bean id="requestFactory"
+          class="org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory">
+            <constructor-arg name="clientDetailsService" ref="clientDetails"/>
+    </bean>
+
+
+    <bean id="userApprovalHandler"
+          class="org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler">
+        <property name="tokenStore" ref="tokenStore"/>
+        <property name="clientDetailsService" ref="clientDetails"/>
+        <property name="requestFactory" ref="requestFactory"/>
+    </bean>
+
+
+
+    <security:http pattern="/singup" security="none"/>
+
+
+
+    <!-- The OAuth2 protected resources are separated out into their own block
+    so we can deal with authorization and error handling separately. This isn't
+    mandatory, but it makes it easier to control the behaviour. -->
+
+
+    <security:http create-session="never" entry-point-ref="oauthAuthenticationEntryPoint">
+        <security:anonymous enabled="false"/>
+        <security:intercept-url pattern="/user/**" access="hasRole('ROLE_USER')"/>
+        <security:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER"/>
+        <security:access-denied-handler ref="oauthAccessDeniedHandler" />
+    </security:http>
+
+    <oauth:resource-server id="resourceServerFilter"
+    		resource-id="com" token-services-ref="tokenServices" />
+
+    <!---
+    Database stuff
+
+    -->
+
+    <bean id="application.properties" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:app.properties</value>
+            </list>
+        </property>
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+        <property name="ignoreResourceNotFound" value="true"/>
+    </bean>
+
+    <bean id="myEmf" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="packagesToScan" value="com.ylitormatech.userserver" />
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+        </property>
+        <property name="jpaProperties">
+            <props>
+                <prop key="hibernate.hbm2ddl.auto">${app.hbm2ddl.auto}</prop>
+                <prop key="hibernate.dialect">${app.hibernate.dialect}</prop>
+
+
+                <prop key="hibernate.connection.useUnicode">true</prop>
+                <prop key="hibernate.connection.characterEncoding">utf8</prop>
+                <prop key="hibernate.connection.charSet">utf8</prop>
+                <prop key="hibernate.hbm2ddl.import_files_sql_extractor">org.hibernate.tool.hbm2ddl.MultipleLinesSqlCommandExtractor</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${app.db.driver}" />
+        <property name="url" value="${app.db.url}" />
+        <property name="username" value="${app.db.user}" />
+        <property name="password" value="${app.db.password}" />
+        <property name="connectionProperties">
+            <props>
+                <prop key="defaultTransactionIsolation">NONE</prop>
+                <prop key="rollbackOnReturn">false</prop>
+            </props>
+        </property>
+
+    </bean>
+
+
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="myEmf" />
+    </bean>
+
+</beans>
