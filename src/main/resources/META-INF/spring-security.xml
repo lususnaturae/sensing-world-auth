@@ -26,6 +26,8 @@ http://www.springframework.org/schema/security/oauth2 http://www.springframework
     </bean>
 
 
+    <bean id="myCorsFilter" class="com.ylitormatech.userserver.filter.MyCorsFilter"/>
+
 
 
     <security:http pattern="/oauth/token" create-session="stateless"
@@ -40,6 +42,7 @@ http://www.springframework.org/schema/security/oauth2 http://www.springframework
         <security:http-basic entry-point-ref="clientAuthenticationEntryPoint" />
         <security:custom-filter ref="clientCredentialsTokenEndpointFilter"
         			after="BASIC_AUTH_FILTER" />
+        <security:custom-filter ref="myCorsFilter" after="PRE_AUTH_FILTER"/>
         <security:access-denied-handler ref="oauthAccessDeniedHandler" />
     </security:http>
 
