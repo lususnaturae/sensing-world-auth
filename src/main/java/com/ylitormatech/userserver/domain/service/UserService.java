@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 public interface UserService extends UserDetailsService {
 
     public WwwUser getUser(String username);
+    public boolean getIsUserExist(String username);
 
     public void singup(WwwUser u);
 

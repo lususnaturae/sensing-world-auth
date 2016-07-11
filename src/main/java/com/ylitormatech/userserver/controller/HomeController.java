@@ -6,6 +6,7 @@ import com.ylitormatech.userserver.web.WwwUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,12 +27,24 @@ public class HomeController {
 
     @RequestMapping(value = "/singup", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public HttpStatus singUp(@RequestBody @Valid UserSingUp userSingUp, BindingResult bindingResult){
+    public ResponseEntity<String> userSingUp(@RequestBody @Valid UserSingUp userSingUp, BindingResult bindingResult){
+
         if(bindingResult.hasErrors()){
-            return HttpStatus.BAD_REQUEST;
+            if(bindingResult.getFieldError("email")!=null) {
+                if (bindingResult.getFieldError("email").getCode().equals("Email")) {
+                    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                            .body("{\"error\":\"auth.singup.error.invalid.email\"}");
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body("{\"error\":\"auth.singup.error.missing.value\"}");
         }
-        userService.singup(new WwwUser(null, userSingUp.getUsername(), userSingUp.getPassword(), userSingUp.getEmail(), "ROLE_USER"));
-        return HttpStatus.OK;
+        if(userService.getIsUserExist(userSingUp.getUsername())) {
+            userService.singup(new WwwUser(null, userSingUp.getUsername(), userSingUp.getPassword(), userSingUp.getEmail(), "ROLE_USER"));
+            return ResponseEntity.ok(null);
+        }
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body("{\"error\":\"auth.singup.error.username.exist\"}");
     }
 
 

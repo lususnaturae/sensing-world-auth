@@ -20,6 +20,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     UserRepository userRepository;
 
+    @Transactional(readOnly = true)
+    public boolean getIsUserExist(String username){
+        return userRepository.getIsUserExist(username);
+    }
+
+    @Transactional(readOnly = true)
     public WwwUser getUser(String username) {
         UserEntity u = userRepository.getUser(username);
         return new WwwUser(u.getId(),u.getUsername(), u.getPassword(),u.getEmail(),u.getRole());

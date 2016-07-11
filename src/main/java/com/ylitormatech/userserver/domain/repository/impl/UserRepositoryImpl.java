@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.List;
 
 /**
  * Created by Perttu Vanharanta on 7.7.2016.
@@ -19,6 +20,16 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public UserEntity getUser(String username) {
         return em.createQuery("FROM UserEntity u WHERE u.username=:username", UserEntity.class).setParameter("username", username).getSingleResult();
+    }
+
+
+    public boolean getIsUserExist(String username){
+        List<UserEntity> list = em.createQuery("FROM UserEntity u WHERE u.username=:username", UserEntity.class).setParameter("username",username).getResultList();
+        if(!list.isEmpty())
+        {
+            return false;
+        }
+        return true;
     }
 
 

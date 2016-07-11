@@ -9,5 +9,7 @@ public interface UserRepository {
 
     public UserEntity getUser(String username);
 
+    public boolean getIsUserExist(String username);
+
     public void store(UserEntity userEntity);
 }
