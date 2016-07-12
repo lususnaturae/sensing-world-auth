@@ -25,7 +25,7 @@ public class HomeController {
     @Autowired
     UserService userService;
 
-    @RequestMapping(value = "/singup", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/signup", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<String> userSingUp(@RequestBody @Valid UserSingUp userSingUp, BindingResult bindingResult){
 
