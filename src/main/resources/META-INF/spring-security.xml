@@ -121,17 +121,7 @@ http://www.springframework.org/schema/security/oauth2 http://www.springframework
         <property name="requestFactory" ref="requestFactory"/>
     </bean>
 
-
-
     <security:http pattern="/signup" security="none"/>
-<!--
-    <security:http pattern="/signup" use-expressions="true" >
-        <security:csrf disabled="true"/>
-        <security:intercept-url pattern="/signup" access="permitAll()"/>
-        <security:http-basic entry-point-ref="clientAuthenticationEntryPoint"/>
-        <security:custom-filter ref="myCorsFilter" after="SESSION_MANAGEMENT_FILTER"/>
-    </security:http>
--->
 
     <!-- The OAuth2 protected resources are separated out into their own block
     so we can deal with authorization and error handling separately. This isn't

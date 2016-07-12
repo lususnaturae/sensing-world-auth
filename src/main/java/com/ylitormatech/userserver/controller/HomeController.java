@@ -48,11 +48,11 @@ public class HomeController {
     }
 
 
-    @RequestMapping("/user/message")
+    @RequestMapping("/user/id")
     @ResponseBody
-    public String getTrustedUserMessage(Principal principal) {
+    public ResponseEntity<String> getTrustedUserMessage(Principal principal) {
         WwwUser wwwUser = userService.getUser(principal.getName());
-        return "Hello, Trusted User" + (principal != null ? " " + principal.getName() + " id:" +wwwUser.getId(): "");
+        return ResponseEntity.ok("{\"id\":\"" +wwwUser.getId()+"\"}");
     }
 
 }
