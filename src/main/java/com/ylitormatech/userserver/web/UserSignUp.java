@@ -6,7 +6,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 /**
  * Created by Perttu Vanharanta on 7.7.2016.
  */
-public class UserSingUp {
+public class UserSignUp {
     @NotEmpty
     String username;
 

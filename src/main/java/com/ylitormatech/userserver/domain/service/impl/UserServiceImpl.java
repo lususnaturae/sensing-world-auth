@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public boolean getIsUserExist(String username){
@@ -35,7 +39,7 @@ public class UserServiceImpl implements UserService {
     public void singup(WwwUser u) {
         UserEntity dbu = new UserEntity();
         dbu.setEmail(u.getEmail());
-        dbu.setPassword(u.getPassword());
+        dbu.setPassword(passwordEncoder.encode(u.getPassword()));
         dbu.setRole(u.getRole());
         dbu.setUsername(u.getUsername());
         userRepository.store(dbu);
