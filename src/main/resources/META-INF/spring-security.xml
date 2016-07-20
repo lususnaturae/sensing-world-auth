@@ -55,7 +55,6 @@ http://www.springframework.org/schema/security/oauth2 http://www.springframework
 
 
 
-
     <bean id="oauthAuthenticationEntryPoint"
     		class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
     		<property name="realmName" value="Testi" />
@@ -98,21 +97,30 @@ http://www.springframework.org/schema/security/oauth2 http://www.springframework
     <oauth:client-details-service id="clientDetails">
         <oauth:client client-id="testi"
                       secret="testi"
-                      authorized-grant-types="password"
+                      authorized-grant-types="password,refresh_token"
                       authorities="ROLE_CLIENT"
-                      scope="trust"/>
-
-
+                      scope="trust"
+                      access-token-validity="60"
+                      refresh-token-validity="6000"/>
     </oauth:client-details-service>
 
+    <bean id="jwtAccessTokenConverter" class="org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter">
+        <property name="signingKey" value="hassuSecretSana"/>
+    </bean>
+
     <bean id="tokenStore"
-    		class="org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore" />
+    		class="org.springframework.security.oauth2.provider.token.store.JwtTokenStore">
+            <constructor-arg ref="jwtAccessTokenConverter"/>
+    </bean>
 
     	<bean id="tokenServices"
     		class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
     		<property name="tokenStore" ref="tokenStore" />
-    		<property name="supportRefreshToken" value="true" />
-    		<property name="clientDetailsService" ref="clientDetails" />
+            <property name="supportRefreshToken" value="true" />
+            <property name="accessTokenValiditySeconds" value="60"/>
+    		<property name="refreshTokenValiditySeconds" value="6000"/>
+            <property name="clientDetailsService" ref="clientDetails" />
+            <property name="tokenEnhancer" ref="jwtAccessTokenConverter"/>
     	</bean>
 
     <bean id="requestFactory"
