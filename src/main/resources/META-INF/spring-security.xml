@@ -57,12 +57,12 @@ http://www.springframework.org/schema/security/oauth2 http://www.springframework
 
     <bean id="oauthAuthenticationEntryPoint"
     		class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
-    		<property name="realmName" value="Testi" />
+    		<property name="realmName" value="${app.realm}" />
     	</bean>
 
     <bean id="clientAuthenticationEntryPoint"
     		class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
-    		<property name="realmName" value="Testi/client" />
+    		<property name="realmName" value="${app.realm}/client" />
     		<property name="typeName" value="Basic" />
     	</bean>
 
@@ -95,17 +95,17 @@ http://www.springframework.org/schema/security/oauth2 http://www.springframework
     </oauth:authorization-server>
 
     <oauth:client-details-service id="clientDetails">
-        <oauth:client client-id="testi"
-                      secret="testi"
+        <oauth:client client-id="${app.clienid}"
+                      secret="${app.clientsecret}"
                       authorized-grant-types="password,refresh_token"
                       authorities="ROLE_CLIENT"
                       scope="trust"
-                      access-token-validity="60"
-                      refresh-token-validity="6000"/>
+                      access-token-validity="${app.accesstoken.valid}"
+                      refresh-token-validity="${app.refreshtoken.valid}"/>
     </oauth:client-details-service>
 
     <bean id="jwtAccessTokenConverter" class="org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter">
-        <property name="signingKey" value="hassuSecretSana"/>
+        <property name="signingKey" value="${app.signingkey}"/>
     </bean>
 
     <bean id="tokenStore"
@@ -117,8 +117,8 @@ http://www.springframework.org/schema/security/oauth2 http://www.springframework
     		class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
     		<property name="tokenStore" ref="tokenStore" />
             <property name="supportRefreshToken" value="true" />
-            <property name="accessTokenValiditySeconds" value="60"/>
-    		<property name="refreshTokenValiditySeconds" value="6000"/>
+            <property name="accessTokenValiditySeconds" value="${app.accesstoken.valid}"/>
+    		<property name="refreshTokenValiditySeconds" value="${app.refreshtoken.valid}"/>
             <property name="clientDetailsService" ref="clientDetails" />
             <property name="tokenEnhancer" ref="jwtAccessTokenConverter"/>
     	</bean>
@@ -166,6 +166,8 @@ http://www.springframework.org/schema/security/oauth2 http://www.springframework
         </property>
         <property name="ignoreUnresolvablePlaceholders" value="true"/>
         <property name="ignoreResourceNotFound" value="true"/>
+        <property name="environment" ref="environment"/>
+
     </bean>
 
     <bean id="myEmf" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
